@@ -79,30 +79,29 @@ def start():
     for key in remote.keys(args.pattern):
         count += 1
         key_type = remote.type(key)
+        has_bug = False
+        remote_data = None
+        local_data = None
         if key_type == b'string':
-            if remote.get(key) != local.get(key) and local.ttl(key) - remote.ttl(key) > 5:
-                bug += 1
-                logger.error(f"{key} 数据不匹配")
-                logger.error(f"local {local.get(key)} ex->{local.ttl(key)}")
-                logger.error(f"remote{remote.get(key)} ex->{remote.ttl(key)}")
-                logger.error("(ノಠ益ಠ)ノ 彡┻━┻")
+            has_bug = remote.get(key) != local.get(key) and local.ttl(key) - remote.ttl(key) > 5
             types.add(key_type)
+            local_data = local.get(key)
+            remote_data = remote.get(key)
         elif key_type == b'zset':
-            if local.zrange(key, 0, -1, withscores=True) != remote.zrange(key, 0, -1, withscores=True) and local.ttl(
-                    key) - remote.ttl(key) > 5:
-                bug += 1
-                logger.error(f"{key} 数据不匹配")
-                logger.error(f"local {local.zrange(key,0,-1,withscores=True)}  ex->{local.ttl(key)}")
-                logger.error(f"remote{remote.zrange(key,0,-1,withscores=True)}  ex->{remote.ttl(key)}")
-                logger.error("(ノಠ益ಠ)ノ 彡┻━┻")
+            has_bug = local.zrange(key, 0, -1, withscores=True) != remote.zrange(key, 0, -1, withscores=True) and local.ttl(key) - remote.ttl(key) > 5
             types.add(key_type)
+            local_data = local.zrange(key, 0, -1, withscores=True)
+            remote_data = remote.zrange(key, 0, -1, withscores=True)
         elif key_type == b'hash':
-            if local.hgetall(key) != remote.hgetall(key) and local.ttl(key) - remote.ttl(key) > 5:
-                bug += 1
-                logger.error(f"{key} 数据不匹配")
-                logger.error(f"local {local.hgetall(key)} ex->{local.ttl(key)}")
-                logger.error(f"remote{remote.hgetall(key)} ex->{remote.ttl(key)}")
-                logger.error("(ノಠ益ಠ)ノ 彡┻━┻")
+            has_bug = (local.hgetall(key) != remote.hgetall(key)) and (local.ttl(key) - remote.ttl(key) > 5)
             types.add(key_type)
+            local_data = local.hgetall(key)
+            remote_data = remote.hgetall(key)
+        if has_bug :
+            logger.error(f"{key} 数据不匹配")
+            logger.error(f"local {local_data} ex->{local.ttl(key)}")
+            logger.error(f"remote{remote_data} ex->{remote.ttl(key)}")
+            logger.error("(ノಠ益ಠ)ノ 彡┻━┻")
+            bug += 1
     logger.info(f"共检查了{count}个key ( つ•̀ω•́)つ・・*:・:・゜:==≡≡Σ=͟͟͞͞(✡)`Д´）ｸﾞﾍｯ!")
     logger.info(f"有{bug}个出现了异常 (╬•᷅д•᷄╬)")
