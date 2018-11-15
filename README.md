@@ -7,7 +7,7 @@ move all data from a redis server to other redis server;
 This program is so simple that I’m concerned every guru can understand it;
 
 
-I will expend this project when I want;
+I will extend this project when I want;
 
 
 My english is not good :(
